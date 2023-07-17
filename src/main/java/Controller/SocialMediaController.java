@@ -2,6 +2,14 @@ package Controller;
 
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import Model.Message;
+import Model.Account;
+import Service.MessageService;
+import Service.AccountService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.*;
 
 /**
  * TODO: You will need to write your own endpoints and handlers for your controller. The endpoints you will need can be
@@ -16,7 +24,8 @@ public class SocialMediaController {
      */
     public Javalin startAPI() {
         Javalin app = Javalin.create();
-        app.get("example-endpoint", this::exampleHandler);
+        app.get("/messages", this::getAllMessagesHandler);
+
 
         return app;
     }
@@ -29,5 +38,30 @@ public class SocialMediaController {
         context.json("sample text");
     }
 
+    private void getAllMessagesHandler(Context ctx) {
+        List<Message> messages = MessageService.getAllMessages();
+        ctx.json(messages);
+        ctx.status(200);
+    }
+
+    //private void getOneMessageHandler(Context ctx) {
+    //    List<Message> message = MessageService.getOneMessage();
+    //    ctx.json(message);
+    //}
+
+    //private void deleteOneMessageHandler(Context ctx) {
+    //    List<Message> message = MessageService.deleteOneMessage();
+    //    ctx.json(message);
+    //}
+
+    //private void updateOneMessageHandler(Context ctx) {
+    //    List<Message> message = MessageService.updateOneMessage();
+    //    ctx.json(message);
+    //}
+
+    //private void getAllMessagesFromUserHandler(Context ctx) {
+    //    List<Message> messages = MessageService.getAllUserMessages();
+    //    ctx.json(messages);
+    //}
 
 }
