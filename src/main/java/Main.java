@@ -1,3 +1,12 @@
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+import org.junit.Assert;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import Controller.SocialMediaController;
 import io.javalin.Javalin;
 import DAO.AccountDAO;
@@ -19,9 +28,11 @@ public class Main {
         AccountService accountService = new AccountService(accountDao);
         MessageService messageService = new MessageService(messageDao);
     
-        SocialMediaController controller = new SocialMediaController(accountService, messageService);
+        SocialMediaController controller = new SocialMediaController();
     
         Javalin app = controller.startAPI();
         app.start(8080);
     }
+
+   
 }

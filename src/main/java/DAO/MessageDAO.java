@@ -11,10 +11,11 @@ public class MessageDAO {
 
     /*Create a message */
     public Message createMessage(Message message) {
+        Connection connection = ConnectionUtil.getConnection();
+        if (message != null) {
         try {
-            Connection connection = ConnectionUtil.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(
-                 "insert into message (posted_by, message_text, time_posted_epoch) values (?, ?, ?);",
+                 "insert into message (posted_by, message_text, time_posted_epoch) values (?, ?, ?)",
                  Statement.RETURN_GENERATED_KEYS);
                 //does the account exist?
                 if (!doesAccountExist(connection, message.getPosted_by())) {
@@ -41,35 +42,32 @@ public class MessageDAO {
             } catch (SQLException ex) {
                         ex.printStackTrace();
                     }
+            }
         return null;
              }
-    
+            
 
-    private boolean doesAccountExist(Connection connection, int id) {
-        String sql = "select count(*) from account where account_id = ?;";
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                int count = rs.getInt(1);
-                return count > 0;
+             private boolean doesAccountExist(Connection connection, int id) {
+                String sql = "SELECT account_id FROM account WHERE account_id = ?";
+                try {
+                    PreparedStatement ps = connection.prepareStatement(sql);
+                    ps.setInt(1, id);
+                    ResultSet rs = ps.executeQuery();
+                    return rs.next(); // Returns true if the ResultSet has at least one row
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+                return false;
             }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return false;
-      }
-
 
     /*Retrieve all messages from the Message table, unlimited by account or id
      * @return all Messages
      */
     public List<Message> getAllMessages(){
         List<Message> messages = new ArrayList<>();
-        try {
         Connection connection = ConnectionUtil.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement("select * from Message;");
+        try {
+        PreparedStatement preparedStatement = connection.prepareStatement("select * from Message");
         ResultSet rs = preparedStatement.executeQuery(); 
             while(rs.next()){
                 Message message = new Message(rs.getInt("message_id"),
@@ -91,10 +89,10 @@ public class MessageDAO {
      * @return a Message identified by its id
      */
     public Message getOneMessage(int id){
+        Connection connection = ConnectionUtil.getConnection();
         try {
-            Connection connection = ConnectionUtil.getConnection();
             //SQL Logic
-            String sql = "select * from Message where message_id = ?;";
+            String sql = "select * from Message where message_id = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
             preparedStatement.setInt(1, id);
@@ -115,10 +113,9 @@ public class MessageDAO {
 
 
     public void deleteMessage(int id) {
+        Connection connection = ConnectionUtil.getConnection();
         try {
-            Connection connection = ConnectionUtil.getConnection();
-        
-            PreparedStatement preparedStatement = connection.prepareStatement("delete from message where message_id = ?;");
+            PreparedStatement preparedStatement = connection.prepareStatement("delete from message where message_id = ?");
             
                 preparedStatement.setInt(1, id);
                 preparedStatement.executeUpdate();
@@ -129,10 +126,10 @@ public class MessageDAO {
 
 
     public Message updateMessage(Message message) {
+        Connection connection = ConnectionUtil.getConnection();
         try {
-            Connection connection = ConnectionUtil.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(
-            "update message set posted_by = ?, message_text = ?, time_posted_epoch = ? where message_id = ?;");
+            "update message set posted_by = ?, message_text = ?, time_posted_epoch = ? where message_id = ?");
         
             preparedStatement.setInt(1, message.getPosted_by());
             preparedStatement.setString(2, message.getMessage_text());
@@ -152,8 +149,8 @@ public class MessageDAO {
 
     public List<Message> getAllMessagesByAccount(int accountId) {
         List<Message> messages = new ArrayList<>();
+        Connection connection = ConnectionUtil.getConnection();
         try {
-            Connection connection = ConnectionUtil.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(
             "select * from Message where posted_by = ?");
             preparedStatement.setInt(1, accountId);

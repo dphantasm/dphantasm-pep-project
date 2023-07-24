@@ -13,7 +13,7 @@ public class AccountDAO {
 
         try {Connection connection = ConnectionUtil.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(
-            "insert into account (username, password) values (?, ?);",
+            "insert into account (username, password) values (?, ?)",
             PreparedStatement.RETURN_GENERATED_KEYS); 
 
                 if (usernameExisting(account.getUsername())) {
@@ -41,7 +41,7 @@ public class AccountDAO {
     public boolean usernameExisting(String username) {
         try {Connection connection = ConnectionUtil.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(
-        "select count(*) from account where username =  ?;");
+        "select count(*) from account where username =  ?");
 
                 preparedStatement.setString(1, username);
                 ResultSet rs = preparedStatement.executeQuery(); {
@@ -59,7 +59,7 @@ public class AccountDAO {
     public Account loginAccount(Account account) {
         try {Connection connection = ConnectionUtil.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(
-            "select * from account where username = ? and password = ?;");
+            "select * from account where username = ? and password = ?");
             
                 preparedStatement.setString(1, account.getUsername());
                 preparedStatement.setString(2, account.getPassword());

@@ -27,14 +27,18 @@ public class SocialMediaController {
     private MessageService messageService;
     private ObjectMapper map;
 
+  
+
   public SocialMediaController () {
+    SocialMediaController(accountService, messageService);
   }
 
-  public SocialMediaController(AccountService accountService, MessageService messageService) {
-    this.accountService = accountService;
-    this.messageService = messageService;
-    this.map = new ObjectMapper();
+    private void SocialMediaController(AccountService accountService, MessageService messageService) {
+      this.accountService = accountService;
+      this.messageService = messageService;
+      this.map = new ObjectMapper();
   }
+
     public Javalin startAPI() {
       Javalin app = Javalin.create();
       app.post("/register", this::registerAccountHandler);
@@ -70,7 +74,7 @@ public class SocialMediaController {
     }
 
     private void  createMessageHandler(Context ctx) throws JsonProcessingException {
-        Message message = map.readValue(ctx.body(), Message.class);
+        Message message = map.readValue(ctx.body(), Model.Message.class);
         if (message != null) {
         Message createdMessage = messageService.createMessage(message);
           if (createdMessage != null) {
@@ -84,7 +88,8 @@ public class SocialMediaController {
     }
 
     private void getAllMessagesHandler(Context ctx) {
-        ctx.json(messageService.getAllMessages()); 
+        List<Message> messages = messageService.getAllMessages();
+        ctx.json(messages); 
     }
 
     private void getOneMessageHandler(Context ctx) {
