@@ -19,11 +19,13 @@ public class MessageDAO {
                  Statement.RETURN_GENERATED_KEYS);
                 //does the account exist?
                 if (!doesAccountExist(connection, message.getPosted_by())) {
-                    return null;
+                    Message dummy = new Message(-999, -999, "Account does not exist.", 1);
+                    return dummy;
                 }
                 //is the message properly formatted?
-                if (message.getMessage_text().isBlank() || message.getMessage_text().length() > 255) {
-                    return null;
+                if (message.getMessage_text().isBlank() || message.getMessage_text().length() > 254) {
+                    Message dummy = new Message(-999, -999, "Message is not properly formatted.", 1);
+                    return dummy;
                 }
 
                 preparedStatement.setInt(1, message.getPosted_by());
@@ -128,23 +130,48 @@ public class MessageDAO {
     public Message updateMessage(Message message) {
         Connection connection = ConnectionUtil.getConnection();
         try {
+                // Check if the posted_by value exists in the ACCOUNT table
+                PreparedStatement accountCheckStatement = connection.prepareStatement(
+                    "SELECT COUNT(*) FROM account WHERE account_id = ?");
+                accountCheckStatement.setInt(1, message.getPosted_by());
+                ResultSet resultSet = accountCheckStatement.executeQuery();
+                resultSet.next();
+                int count = resultSet.getInt(1);
+        
+                // If the posted_by value does not exist, return an error message
+                if (count == 0) {
+                    Message dummy = new Message(-999, "Invalid posted_by value! Account does not exist.", -999);
+                    return dummy;
+                }
+
+
             PreparedStatement preparedStatement = connection.prepareStatement(
-            "update message set posted_by = ?, message_text = ?, time_posted_epoch = ? where message_id = ?");
+            "UPDATE message SET posted_by = ?, message_text = ?, time_posted_epoch = ? WHERE message_id = ?");
+
+            //validate message
+            if (message.getMessage_text().isBlank() || message.getMessage_text().length() > 254) {
+                Message dummy = new Message(-999, "Message improperly formatted!", -999);
+                return dummy;
+            }
         
             preparedStatement.setInt(1, message.getPosted_by());
             preparedStatement.setString(2, message.getMessage_text());
             preparedStatement.setLong(3, message.getTime_posted_epoch());
             preparedStatement.setInt(4, message.getMessage_id());
 
-            int messagesUpdated = preparedStatement.executeUpdate();
-            if (messagesUpdated > 0) {
+            if (preparedStatement.getUpdateCount() > 0) {
                 return message;
+            } else {
+                Message dummy = new Message(-999, "No messages updated or id does not exist!", -999);
+                return dummy;
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
         return null;
+    
     }
+
     
 
     public List<Message> getAllMessagesByAccount(int accountId) {

@@ -4,11 +4,14 @@ import io.javalin.Javalin;
 import io.javalin.http.Context;
 import Model.Message;
 import Model.Account;
+import DAO.AccountDAO;
+import DAO.MessageDAO;
 import Service.MessageService;
 import Service.AccountService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -30,10 +33,10 @@ public class SocialMediaController {
   
 
   public SocialMediaController () {
-    SocialMediaController(accountService, messageService);
+    setup();
   }
 
-    private void SocialMediaController(AccountService accountService, MessageService messageService) {
+ public SocialMediaController(AccountService accountService, MessageService messageService) {
       this.accountService = accountService;
       this.messageService = messageService;
       this.map = new ObjectMapper();
@@ -50,6 +53,18 @@ public class SocialMediaController {
       app.patch("/messages/{message_id}", this::updateMessageHandler);
       app.get("/accounts/{account_id}", this::getAllMessagesByAccountHandler);
       return app;
+    }
+
+      private void setup() {
+        AccountDAO accountDao = new AccountDAO();
+        MessageDAO messageDao = new MessageDAO();
+    
+        AccountService accountService = new AccountService(accountDao);
+        MessageService messageService = new MessageService(messageDao);
+
+        this.accountService = accountService;
+        this.messageService = messageService;
+        this.map = new ObjectMapper();
     }
 
 
@@ -77,10 +92,10 @@ public class SocialMediaController {
         Message message = map.readValue(ctx.body(), Model.Message.class);
         if (message != null) {
         Message createdMessage = messageService.createMessage(message);
-          if (createdMessage != null) {
+          if (createdMessage.message_id != -999) {
             ctx.json(createdMessage);
           } else {
-            ctx.status(500);
+            ctx.status(400);
           }
         } else {
           ctx.status(400);
@@ -124,10 +139,12 @@ public class SocialMediaController {
           Message updatedMessage = ctx.bodyAsClass(Message.class);
           updatedMessage.setMessage_id(messageId);
           Message update = messageService.updateOneMessage(updatedMessage);
-          if (update != null) {
+          if (update != null && update.posted_by != -999) {
             ctx.json(update);
+          } else if (update.posted_by == -999) {
+            ctx.status(400);
           } else {
-            ctx.status(500);
+            ctx.status(501);
           }
         } catch (NumberFormatException ex) {
           ctx.status(400);
