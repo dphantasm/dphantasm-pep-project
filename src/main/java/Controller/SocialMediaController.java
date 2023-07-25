@@ -105,6 +105,7 @@ public class SocialMediaController {
     private void getAllMessagesHandler(Context ctx) {
         List<Message> messages = messageService.getAllMessages();
         ctx.json(messages); 
+        System.out.println(messages.toString());
     }
 
     private void getOneMessageHandler(Context ctx) {
@@ -115,7 +116,9 @@ public class SocialMediaController {
           if (message != null) {
             ctx.json(message);
           } else {
-            ctx.status(404);
+            Message dummy = new Message();
+            ctx.json(dummy);
+            System.out.println(dummy.toString());
           }
         } catch (NumberFormatException ex) {
           ctx.status(400);
@@ -139,9 +142,9 @@ public class SocialMediaController {
           Message updatedMessage = ctx.bodyAsClass(Message.class);
           updatedMessage.setMessage_id(messageId);
           Message update = messageService.updateOneMessage(updatedMessage);
-          if (update != null && update.posted_by != -999) {
+          if (update != null && update.getMessage_id() != -999) {
             ctx.json(update);
-          } else if (update.posted_by == -999) {
+          } else if (update.getMessage_id() == -999) {
             ctx.status(400);
           } else {
             ctx.status(501);

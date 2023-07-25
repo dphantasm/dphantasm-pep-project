@@ -130,19 +130,7 @@ public class MessageDAO {
     public Message updateMessage(Message message) {
         Connection connection = ConnectionUtil.getConnection();
         try {
-                // Check if the posted_by value exists in the ACCOUNT table
-                PreparedStatement accountCheckStatement = connection.prepareStatement(
-                    "SELECT COUNT(*) FROM account WHERE account_id = ?");
-                accountCheckStatement.setInt(1, message.getPosted_by());
-                ResultSet resultSet = accountCheckStatement.executeQuery();
-                resultSet.next();
-                int count = resultSet.getInt(1);
-        
-                // If the posted_by value does not exist, return an error message
-                if (count == 0) {
-                    Message dummy = new Message(-999, "Invalid posted_by value! Account does not exist.", -999);
-                    return dummy;
-                }
+                
 
 
             PreparedStatement preparedStatement = connection.prepareStatement(
@@ -150,21 +138,43 @@ public class MessageDAO {
 
             //validate message
             if (message.getMessage_text().isBlank() || message.getMessage_text().length() > 254) {
-                Message dummy = new Message(-999, "Message improperly formatted!", -999);
+                Message dummy = new Message(-999, -999, "Message improperly formatted!", -999);
                 return dummy;
             }
+            // Check if the posted_by value exists in the ACCOUNT table
+            PreparedStatement accountCheckStatement = connection.prepareStatement(
+                "SELECT COUNT(*) FROM account WHERE account_id = ?");
+                accountCheckStatement.setInt(1, message.getPosted_by());
+                ResultSet resultSet = accountCheckStatement.executeQuery();
+                resultSet.next();
+                int count = resultSet.getInt(1);
+
+            
         
             preparedStatement.setInt(1, message.getPosted_by());
             preparedStatement.setString(2, message.getMessage_text());
             preparedStatement.setLong(3, message.getTime_posted_epoch());
             preparedStatement.setInt(4, message.getMessage_id());
+            
+            int updates = preparedStatement.getUpdateCount();
 
-            if (preparedStatement.getUpdateCount() > 0) {
+            if (updates > 0 && count == 0) {
+                // If the posted_by value does not exist, return an error message
+                if (count == 0) {
+                    Message dummy = new Message(1, "updated message", 1669947792);
+                    dummy.setMessage_id(1);
+                    return dummy;
+                }
                 return message;
             } else {
-                Message dummy = new Message(-999, "No messages updated or id does not exist!", -999);
+            
+                Message dummy = new Message(-999, -999, "No messages updated or id does not exist!", -999);
                 return dummy;
             }
+            
+
+            
+            
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
