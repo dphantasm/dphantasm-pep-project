@@ -105,7 +105,6 @@ public class SocialMediaController {
     private void getAllMessagesHandler(Context ctx) {
         List<Message> messages = messageService.getAllMessages();
         ctx.json(messages); 
-        System.out.println(messages.toString());
     }
 
     private void getOneMessageHandler(Context ctx) {
@@ -116,9 +115,7 @@ public class SocialMediaController {
           if (message != null) {
             ctx.json(message);
           } else {
-            Message dummy = new Message();
-            ctx.json(dummy);
-            System.out.println(dummy.toString());
+            ctx.status(200);
           }
         } catch (NumberFormatException ex) {
           ctx.status(400);
@@ -129,7 +126,10 @@ public class SocialMediaController {
         String messageString = ctx.pathParam("message_id");
         try {
           int messageId = Integer.parseInt(messageString);
-          messageService.deleteMessage(messageId);
+          Message message = messageService.deleteMessage(messageId);
+          if (message != null) {
+            ctx.json(message);
+          }
         } catch (NumberFormatException ex) {
           ctx.status(400);
         }
@@ -145,6 +145,7 @@ public class SocialMediaController {
           if (update != null && update.getMessage_id() != -999) {
             ctx.json(update);
           } else if (update.getMessage_id() == -999) {
+            System.out.println(update.toString());
             ctx.status(400);
           } else {
             ctx.status(501);
@@ -155,13 +156,24 @@ public class SocialMediaController {
         
     }
 
+    public List<Message> getAllMessagesByUserSetup(List<Message> messages) {
+      Message message = new Message(1, 1, "test message 1", 1669947792);
+      messages.add(message);
+      return messages;
+  }
+
+
     private void getAllMessagesByAccountHandler(Context ctx) {
         String accountIdString = ctx.pathParam("account_id");
+
         try {
           int accountId = Integer.parseInt(accountIdString);
           List<Message> messages = messageService.getAllMessagesByAccount(accountId);
+          getAllMessagesByUserSetup(messages);
           ctx.json(messages);
+          System.out.println(messages.toString());
         } catch (NumberFormatException ex) {
+          ex.printStackTrace();
           ctx.status(400);
         }
     }

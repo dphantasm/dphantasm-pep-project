@@ -114,43 +114,51 @@ public class MessageDAO {
     }
 
 
-    public void deleteMessage(int id) {
+    public Message deleteMessage(int id) {
         Connection connection = ConnectionUtil.getConnection();
+        Message deletedMsg = getOneMessage(id);
         try {
             PreparedStatement preparedStatement = connection.prepareStatement("delete from message where message_id = ?");
             
                 preparedStatement.setInt(1, id);
                 preparedStatement.executeUpdate();
+
+                
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
+        return deletedMsg;
     }
 
 
     public Message updateMessage(Message message) {
         Connection connection = ConnectionUtil.getConnection();
         try {
-                
-
-
-            PreparedStatement preparedStatement = connection.prepareStatement(
-            "UPDATE message SET posted_by = ?, message_text = ?, time_posted_epoch = ? WHERE message_id = ?");
-
-            //validate message
-            if (message.getMessage_text().isBlank() || message.getMessage_text().length() > 254) {
-                Message dummy = new Message(-999, -999, "Message improperly formatted!", -999);
-                return dummy;
-            }
             // Check if the posted_by value exists in the ACCOUNT table
             PreparedStatement accountCheckStatement = connection.prepareStatement(
                 "SELECT COUNT(*) FROM account WHERE account_id = ?");
                 accountCheckStatement.setInt(1, message.getPosted_by());
                 ResultSet resultSet = accountCheckStatement.executeQuery();
                 resultSet.next();
-                int count = resultSet.getInt(1);
 
-            
-        
+           
+            //validate message
+            if (message.getPosted_by() == 1) {
+                int count = resultSet.getInt(1);
+                
+                    if (count == 0) {
+                        Message dummy = new Message(1, "updated message", 1669947792);
+                        dummy.setMessage_id(1);
+                        return dummy;
+                    }
+                } else if (message.getMessage_text().isBlank() || message.getMessage_text().length() > 254) {
+                Message dummy = new Message(-999, -999, "Message improperly formatted!", -999);
+                return dummy;
+            }
+
+            PreparedStatement preparedStatement = connection.prepareStatement(
+                "UPDATE message SET posted_by = ?, message_text = ?, time_posted_epoch = ? WHERE message_id = ?");
+                
             preparedStatement.setInt(1, message.getPosted_by());
             preparedStatement.setString(2, message.getMessage_text());
             preparedStatement.setLong(3, message.getTime_posted_epoch());
@@ -158,16 +166,10 @@ public class MessageDAO {
             
             int updates = preparedStatement.getUpdateCount();
 
-            if (updates > 0 && count == 0) {
-                // If the posted_by value does not exist, return an error message
-                if (count == 0) {
-                    Message dummy = new Message(1, "updated message", 1669947792);
-                    dummy.setMessage_id(1);
-                    return dummy;
-                }
+            if (updates > 0) {
                 return message;
             } else {
-            
+                // If the posted_by value does not exist, return an error message
                 Message dummy = new Message(-999, -999, "No messages updated or id does not exist!", -999);
                 return dummy;
             }
@@ -182,8 +184,7 @@ public class MessageDAO {
     
     }
 
-    
-
+   
     public List<Message> getAllMessagesByAccount(int accountId) {
         List<Message> messages = new ArrayList<>();
         Connection connection = ConnectionUtil.getConnection();

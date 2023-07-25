@@ -23,8 +23,8 @@ public class MessageService {
         return messageDAO.getOneMessage(id);
     }
 
-    public void deleteMessage(int id) {
-        messageDAO.deleteMessage(id);
+    public Message deleteMessage(int id) {
+        return messageDAO.deleteMessage(id);
     }
 
     public Message updateOneMessage(Message message) {
