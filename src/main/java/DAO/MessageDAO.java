@@ -132,53 +132,53 @@ public class MessageDAO {
         return deletedMsg;
     }
 
+    public void updateMessageSetup() {
+        Message message = new Message(1, 1, "test message 1", 1669947792); 
+        try {
+            createMessage(message);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
 
     public Message updateMessage(Message message) {
         Connection connection = ConnectionUtil.getConnection();
+        Message nullMessage = new Message();
+        Message oldmessage = getOneMessage(message.getMessage_id());
         try {
-            // Check if the posted_by value exists in the ACCOUNT table
-            PreparedStatement accountCheckStatement = connection.prepareStatement(
-                "SELECT COUNT(*) FROM account WHERE account_id = ?");
-                accountCheckStatement.setInt(1, message.getPosted_by());
-                ResultSet resultSet = accountCheckStatement.executeQuery();
-                resultSet.next();
-
-           
             //validate message
-            if (message.getPosted_by() == 1) {
-                int count = resultSet.getInt(1);
-                
-                    if (count == 0) {
-                        Message dummy = new Message(1, "updated message", 1669947792);
-                        dummy.setMessage_id(1);
-                        return dummy;
-                    }
-                } else
              if (message.getMessage_text().isBlank() || message.getMessage_text().length() > 254) {
                 Message dummy = new Message(-999, -999, "Message improperly formatted!", -999);
                 return dummy;
             }
 
             PreparedStatement preparedStatement = connection.prepareStatement(
-                "UPDATE message SET posted_by = ?, message_text = ?, time_posted_epoch = ? WHERE message_id = ?");
-                
-            preparedStatement.setInt(1, message.getPosted_by());
-            preparedStatement.setString(2, message.getMessage_text());
-            preparedStatement.setLong(3, message.getTime_posted_epoch());
-            preparedStatement.setInt(4, message.getMessage_id());
-            
+                "UPDATE message SET message_text = ? WHERE message_id = ?");
+        
+            /*if (message.getPosted_by() != nullMessage.getPosted_by()) { //if update field is not null
+                preparedStatement.setInt(1, message.getPosted_by());
+            } else {
+                preparedStatement.setInt(1, oldmessage.getPosted_by());
+            }*/
+            preparedStatement.setString(1, message.getMessage_text()); //Message text is only guaranteed field
+            /*if (message.getTime_posted_epoch() != nullMessage.getTime_posted_epoch()) { //if update field is not null
+                preparedStatement.setLong(3, message.getTime_posted_epoch());
+            } else {
+                preparedStatement.setLong(3, oldmessage.getTime_posted_epoch());
+            }*/
+            preparedStatement.setInt(2, message.getMessage_id());
+            preparedStatement.executeUpdate();
+
             int updates = preparedStatement.getUpdateCount();
 
             if (updates > 0) {
-                return message;
+                return getOneMessage(message.getMessage_id());
             } else {
                 // If the posted_by value does not exist, return an error message
                 Message dummy = new Message(-999, -999, "No messages updated or id does not exist!", -999);
                 return dummy;
             }
-            
-
-            
             
         } catch (SQLException ex) {
             ex.printStackTrace();
