@@ -199,7 +199,7 @@ public class MessageDAO {
     }
    
     public List<Message> getAllMessagesByAccount(int accountId) {
-        List<Message> messages = getAllMessagesByUserSetup();
+        List<Message> messages = new ArrayList<>();
         Connection connection = ConnectionUtil.getConnection();
         
         try {

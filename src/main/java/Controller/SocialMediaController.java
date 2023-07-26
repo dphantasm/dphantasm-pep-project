@@ -165,10 +165,11 @@ public class SocialMediaController {
         try {
           int accountId = Integer.parseInt(accountIdString);
           List<Message> messages = messageService.getAllMessagesByAccount(accountId);
-          if (messages != null) {
-            ctx.json(messages);
-          } else {
+          if (messages == null) {
             ctx.json(200);
+          } else {
+            System.out.print(messages.toString());
+            ctx.json(messages);
           }
         } catch (NumberFormatException ex) {
           ctx.status(400);
