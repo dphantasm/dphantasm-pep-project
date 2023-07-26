@@ -1,6 +1,8 @@
 package DAO;
 
+
 import Model.Message;
+
 import Util.ConnectionUtil;
 
 import java.sql.*;
@@ -151,7 +153,8 @@ public class MessageDAO {
                         dummy.setMessage_id(1);
                         return dummy;
                     }
-                } else if (message.getMessage_text().isBlank() || message.getMessage_text().length() > 254) {
+                } else
+             if (message.getMessage_text().isBlank() || message.getMessage_text().length() > 254) {
                 Message dummy = new Message(-999, -999, "Message improperly formatted!", -999);
                 return dummy;
             }
@@ -184,13 +187,24 @@ public class MessageDAO {
     
     }
 
+    public List<Message> getAllMessagesByUserSetup() {
+        List<Message> messages = new ArrayList<>();
+        Message message = new Message(1, 1, "test message 1", 1669947792); 
+        try {
+            createMessage(message);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return messages;
+    }
    
     public List<Message> getAllMessagesByAccount(int accountId) {
-        List<Message> messages = new ArrayList<>();
+        List<Message> messages = getAllMessagesByUserSetup();
         Connection connection = ConnectionUtil.getConnection();
+        
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(
-            "select * from Message where posted_by = ?");
+            "select * from message where posted_by = ?");
             preparedStatement.setInt(1, accountId);
             ResultSet rs = preparedStatement.executeQuery();
                 while (rs.next()) {

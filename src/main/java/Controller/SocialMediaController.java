@@ -156,11 +156,7 @@ public class SocialMediaController {
         
     }
 
-    public List<Message> getAllMessagesByUserSetup(List<Message> messages) {
-      Message message = new Message(1, 1, "test message 1", 1669947792);
-      messages.add(message);
-      return messages;
-  }
+    
 
 
     private void getAllMessagesByAccountHandler(Context ctx) {
@@ -169,11 +165,12 @@ public class SocialMediaController {
         try {
           int accountId = Integer.parseInt(accountIdString);
           List<Message> messages = messageService.getAllMessagesByAccount(accountId);
-          getAllMessagesByUserSetup(messages);
-          ctx.json(messages);
-          System.out.println(messages.toString());
+          if (messages != null) {
+            ctx.json(messages);
+          } else {
+            ctx.json(200);
+          }
         } catch (NumberFormatException ex) {
-          ex.printStackTrace();
           ctx.status(400);
         }
     }
